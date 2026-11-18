@@ -1140,6 +1140,25 @@ open class CC {
 			return (buffer, blockSize)
 		}
 
+		/// Performs a raw RSA operation without adding or removing padding.
+		/// The key is imported from the supplied DER representation.
+		public static func rawCrypt(_ data: Data, derKey: Data) throws -> (Data, Int) {
+			let key = try importFromDERKey(derKey)
+			defer { CCRSACryptorRelease!(key) }
+
+			let blockSize = getKeySize(key)
+			let result = try crypt(data, key: key)
+			return (result, blockSize)
+		}
+
+		/// Returns the RSA key size in bytes for a DER-encoded key.
+		public static func keySize(derKey: Data) throws -> Int {
+			let key = try importFromDERKey(derKey)
+			defer { CCRSACryptorRelease!(key) }
+
+			return getKeySize(key)
+		}
+
 		fileprivate static func importFromDERKey(_ derKey: Data) throws -> CCRSACryptorRef {
 			var key: CCRSACryptorRef? = nil
 			let status = derKey.withUnsafeBytes { derKeyBytes -> OSStatus in
